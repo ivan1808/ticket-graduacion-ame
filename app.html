@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Generador de recibos PDF</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 18px; max-width: 680px; margin: auto; }
+    input, textarea { width: 100%; padding: 8px; margin: 6px 0 12px; box-sizing: border-box; }
+    button { padding: 10px 14px; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <h1>Generador de PDF</h1>
+
+  <form id="miFormulario">
+    <label>Graduado</label>
+    <input id="nombre" placeholder="Nombre completo" required>
+
+    <label>Numero de Telefono</label>
+    <input id="tel" type="tel" placeholder="Telefono" required>
+
+    <label>Fecha</label>
+    <input id="fecha" type="date" required>
+
+    <label>Cantidad</label>
+    <input id="cant" type="number" min="1" step="1" value="1" required>
+
+    <button id="btnGenerar" type="submit">Generar y Descargar PDF</button>
+  </form>
+
+  <!-- jsPDF CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    const { jsPDF } = window.jspdf;
+
+    // url de github pages
+    const logoURL = "https://ivan1808.github.io/ticket-graduacion-ame/png.webp";
+
+    async function crearPDF(nombre, tel, fecha, cant) {
+      const doc = new jsPDF({ unit:'pt', format:'letter' });
+
+      const img = await fetch(logoURL).then(r=>r.blob()).then(b=>{
+        return new Promise(res=>{
+          const reader = new FileReader();
+          reader.onload = e => res(e.target.result);
+          reader.readAsDataURL(b);
+        });
+      });
+
+      let x = 60;
+      let y = 60;
+
+      doc.addImage(img, "WEBP", 20, 20, 150, 150); // transparencia ok
+
+      doc.setFontSize(20);
+      doc.text("Documento generado", x, y+150);
+      y += 178;
+
+      doc.setFontSize(12);
+      doc.text(`Nombre: ${nombre}`, x, y); y+=20;
+      doc.text(`Telefono: ${tel}`, x, y); y+=20;
+      doc.text(`Fecha: ${fecha}`, x, y); y+=20;
+      doc.text(`Cantidad: ${cant}`, x, y);
+
+      doc.setFontSize(10);
+      doc.text(`Generado ${new Date().toLocaleString()}`, x, 750);
+
+      return doc;
+    }
+
+    document.getElementById("miFormulario").addEventListener("submit", async function(e){
+      e.preventDefault();
+
+      const nombre = document.getElementById('nombre').value;
+      const tel = document.getElementById('tel').value;
+      const fecha = document.getElementById('fecha').value;
+      const cant  = document.getElementById('cant').value;
+
+      const doc = await crearPDF(nombre, tel, fecha, cant);
+      doc.save('documento_generado.pdf');
+    });
+  </script>
+</body>
+</html>

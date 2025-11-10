@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Acceso</title>
+  <style>
+    body{font-family:Arial;padding:30px;text-align:center}
+    input{padding:10px;font-size:18px}
+    button{padding:10px;font-size:18px;margin-top:10px}
+  </style>
+</head>
+<body>
+
+  <h2>Acceso restringido</h2>
+  <p>Ingresa la contraseña para continuar</p>
+
+  <input id="pass" type="password" placeholder="Contraseña">
+  <br>
+  <button onclick="entrar()">Entrar</button>
+
+<script>
+function entrar(){
+  const p = document.getElementById("pass").value.trim();
+
+  const CLAVE = "1808"; // <-- AQUÍ CAMBIAS TU CONTRASEÑA
+
+  if(p === CLAVE){
+    window.location.href = "app.html";
+  }else{
+    alert("Contraseña incorrecta");
+  }
+}
+</script>
+
+</body>
+</html>
