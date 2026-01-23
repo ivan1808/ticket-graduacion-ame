@@ -190,7 +190,7 @@ document.getElementById("Usuario").addEventListener("submit", async function(e){
   e.preventDefault();
   const user = document.getElementById("user").value.trim();
   const pass = document.getElementById("pass").value.trim();
-  if((user==="1" && pass==="PESA1808") || (user==="2" && pass==="Renato2025") || (user==="3" && pass==="Libro#123")){
+  if((user==="1" && pass==="PESA1808") || (user==="2" && pass==="Renato2025") || (user==="3" && pass==="Libro#123"|| (user==="4" && pass==="jose12")){
 document.getElementById("miFormulario").style.display = "block";
 		if(user==="1"){
       document.getElementById("emis").value = "América Natalia Pérez Saldívar";
@@ -198,6 +198,9 @@ document.getElementById("miFormulario").style.display = "block";
       document.getElementById("emis").value = "Jessica Aimee Chan García";
 } else if(user==="3"){
       document.getElementById("emis").value = "Alessandra Monserrat Cámara Pérez";
+}
+  else if(user==="4"){
+      document.getElementById("emis").value = "José David Gómez Pootz";
 }
     document.getElementById("Usuario").style.display = "none";
   } else {
