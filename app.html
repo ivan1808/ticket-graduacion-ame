@@ -49,6 +49,9 @@
     <label>Emisor:</label>
     <input type="text" id="emis" readonly>
 
+    <label>Fecha</label>
+<input id="fecha" type="date" required>
+
     <label>Graduado</label>
     <input id="nombre" placeholder="Nombre completo" required>
 
@@ -86,6 +89,8 @@
   window.location.href = "verificador.html";
 });
 
+    document.getElementById("fecha").valueAsDate = new Date();
+
     const firebaseConfig = {
       apiKey: "AIzaSyBJpjFZvRElDJWTfqb1qzrdgRF68YcKfvI",
       authDomain: "back-ticket-graduacion.firebaseapp.com",
@@ -105,10 +110,10 @@
     // url de github pages
     const logoURL = "https://ivan1808.github.io/ticket-graduacion-ame/grad.png";
 
-    async function crearPDF(nombre, tel, cant, emis, d, precio, id) {
+    async function crearPDF(nombre, tel, cant, emis, d, precio, id,fechaInput) {
+      const [year, month, day] = fechaInput.split("-");
+      const fecha = `${day}/${month}/${year}`;
       const doc = new jsPDF({ unit: 'pt', format: 'letter' });
-      const day = new Date();
-      const fecha = day.toLocaleDateString();
       const imgi = await fetch(logoURL).then(r => r.blob()).then(b => {
         return new Promise(res => {
           const reader = new FileReader();
@@ -277,13 +282,14 @@
       const nombre = document.getElementById('nombre').value;
       const tel = document.getElementById('tel').value;
       const cant = document.getElementById('cant').value;
+      const fechaInput = document.getElementById('fecha').value;
 
       const emis = document.getElementById('emis').value;
 
       const d = document.getElementById('d').value;
       const precio = document.getElementById('precio').value;
 
-      const doc = await crearPDF(nombre, tel, cant, emis, d, precio, id);
+      const doc = await crearPDF(nombre, tel, cant, emis, d, precio, id, fechaInput);
 
       await window.setDoc(window.docRef(window.db, "pdfs", id), {
         id: id,
@@ -294,7 +300,7 @@
         precio: Number(precio || 850),
         total: Number(cant) * Number(precio || 850),
         emisor: emis,
-        fecha: new Date().toISOString()
+        fecha: fechaInput
       });
       const blob = doc.output('blob');
       const url = URL.createObjectURL(blob);
