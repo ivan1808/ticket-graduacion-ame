@@ -1,37 +1,56 @@
 <!doctype html>
 <html lang="es">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Generador de recibos PDF</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 18px; max-width: 680px; margin: auto; }
-    input, textarea { width: 100%; padding: 8px; margin: 6px 0 12px; box-sizing: border-box; }
-    button { padding: 10px 14px; font-size: 16px; }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 18px;
+      max-width: 680px;
+      margin: auto;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      padding: 8px;
+      margin: 6px 0 12px;
+      box-sizing: border-box;
+    }
+
+    button {
+      padding: 10px 14px;
+      font-size: 16px;
+    }
   </style>
 </head>
+
 <body>
   <h1>Generador de PDF</h1>
-<img id="log" src="grad.png" style="display:none">
- 
+  <img id="log" src="grad.png" style="display:none">
+
   <form id="Usuario">
 
     <label>Usuario</label>
-     <input id="user" placeholder="Numero de cuenta">
+    <input id="user" placeholder="Numero de cuenta">
 
     <label>Password</label>
-     <input id="pass" type="password" placeholder="Contraseña">
+    <input id="pass" type="password" placeholder="Contraseña">
 
     <button type="submit">Ingresar</button>
   </form>
 
 
   <form id="miFormulario" style="display:none;">
-<label>Emisor:</label>
-<input type="text" id="emis" readonly>
+
+    <label>Emisor:</label>
+    <input type="text" id="emis" readonly>
 
     <label>Graduado</label>
-    <input id="nombre" placeholder="Nombre completo"  required>
+    <input id="nombre" placeholder="Nombre completo" required>
 
     <label>Numero de Telefono</label>
     <input id="tel" type="tel" placeholder="Telefono" required>
@@ -41,31 +60,57 @@
 
     <label>Descripción</label><br>
     <select name="Descripción" id="d" select size="number" required>
-  <option value="BOLETO DE GRADUACIÓN">Boleto de graduación</option>
-  <option value="ABONO">Abono</option>
+      <option value="BOLETO DE GRADUACIÓN">Boleto de graduación</option>
+      <option value="ABONO">Abono</option>
     </select><br><br>
 
     <div id="pr" style="display:none; margin-top:10px;">
-    <input id="precio" type="number"  step="50" value="850"/>
+      <input id="precio" type="number" step="50" value="850" />
     </div>
 
     <button id="btnGenerar" type="submit">ABRIR PDF</button>
   </form>
+  <div>
+    <button id="btnVerificar">Verificar ID</button>
+  </div>
+  
 
-  <!-- jsPDF CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+    import { getDoc } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+    import { signInWithEmailAndPassword, getAuth } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
+
+    document.getElementById("btnVerificar").addEventListener("click", () => {
+  window.location.href = "verificador.html";
+});
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBJpjFZvRElDJWTfqb1qzrdgRF68YcKfvI",
+      authDomain: "back-ticket-graduacion.firebaseapp.com",
+      projectId: "back-ticket-graduacion",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Hacer accesible globalmente
+    window.db = db;
+    window.setDoc = setDoc;
+    window.docRef = doc;
     const { jsPDF } = window.jspdf;
 
     // url de github pages
     const logoURL = "https://ivan1808.github.io/ticket-graduacion-ame/grad.png";
 
-    async function crearPDF(nombre, tel, cant, emis, d, precio) {
-      const doc = new jsPDF({ unit:'pt', format:'letter' });
+    async function crearPDF(nombre, tel, cant, emis, d, precio, id) {
+      const doc = new jsPDF({ unit: 'pt', format: 'letter' });
       const day = new Date();
       const fecha = day.toLocaleDateString();
-      const imgi = await fetch(logoURL).then(r=>r.blob()).then(b=>{
-        return new Promise(res=>{
+      const imgi = await fetch(logoURL).then(r => r.blob()).then(b => {
+        return new Promise(res => {
           const reader = new FileReader();
           reader.onload = e => res(e.target.result);
           reader.readAsDataURL(b);
@@ -76,7 +121,7 @@
 
       doc.setFontSize(20);
       doc.setDrawColor(0, 0, 0); // azul (RGB)
-      doc.setFont(undefined, "bold"); 
+      doc.setFont(undefined, "bold");
 
       doc.setLineWidth(2);         // grosor de línea 2 pt
       doc.line(20, 30, 592, 30);   // x1,y1 → x2,y2
@@ -85,148 +130,177 @@
       x = 360;
 
       y += 50;
-      doc.setTextColor(207, 183, 87); 
+      doc.setTextColor(207, 183, 87);
       doc.text("GRADUACIÓN QFB", x, y); y += 30;
       x = 320;
 
       doc.text("GENERACIÓN 2021-2026", x, y);
-      doc.setTextColor(0,0,0);
+      doc.setTextColor(0, 0, 0);
       y += 100;
-      
-      x=60;
 
-      doc.setFont(undefined, "normal"); 
+      x = 60;
+
+      doc.setFont(undefined, "normal");
       doc.setFontSize(16);
 
       doc.setTextColor(207, 183, 87);
-      doc.text("Graduado:", x, y); x+=120;
-      doc.setTextColor(0,0,0);
-      doc.text(`${nombre}`, x, y); y+=15; x+=25;
+      doc.text("Graduado:", x, y); x += 120;
+      doc.setTextColor(0, 0, 0);
+      doc.text(`${nombre}`, x, y); y += 15; x += 25;
       doc.setFontSize(10);
-      doc.text("QUIMICO FARMACEUTICO BIOLOGO", x, y); y+=30;
+      doc.text("QUIMICO FARMACEUTICO BIOLOGO", x, y); y += 30;
       doc.setFontSize(12);
 
-      x=60;
+      x = 60;
 
       doc.setTextColor(207, 183, 87);
-      doc.setFont(undefined, "bold"); 
-      doc.text("Telefono:", x, y); x+=60;
-      doc.setFont(undefined, "normal"); 
+      doc.setFont(undefined, "bold");
+      doc.text("Telefono:", x, y); x += 60;
+      doc.setFont(undefined, "normal");
       doc.setFontSize(12);
-      doc.setTextColor(0,0,0);
+      doc.setTextColor(0, 0, 0);
       doc.text(`${tel}`, x, y);
-      x+=80;
+      x += 80;
 
       doc.setTextColor(207, 183, 87);
-      doc.setFont(undefined, "bold"); 
-      doc.text("Fecha:", x, y); x+=40;
-      doc.setFont(undefined, "normal"); 
+      doc.setFont(undefined, "bold");
+      doc.text("Fecha:", x, y); x += 40;
+      doc.setFont(undefined, "normal");
 
-      doc.setTextColor(0,0,0);
-      doc.text(`${fecha}`, x, y); y+=50;
+      doc.setTextColor(0, 0, 0);
+      doc.text(`${fecha}`, x, y); y += 50;
 
       doc.line(90, y, 170, y);   // x1,y1 → x2,y2
       doc.line(180, y, 390, y);   // x1,y1 → x2,y2
       doc.line(420, y, 530, y);   // x1,y1 → x2,y2
 
 
-      y+=20;
-      x=110;
+      y += 20;
+      x = 110;
       doc.setTextColor(84, 84, 84);
-      doc.text("Cantidad", x, y); x+=140;
-      doc.text("Descripción", x, y); x+=190;
+      doc.text("Cantidad", x, y); x += 140;
+      doc.text("Descripción", x, y); x += 190;
       doc.text("Valor unitario", x, y);
 
 
-      x=130;
-      y+=30;
+      x = 130;
+      y += 30;
 
-      doc.setTextColor(0,0,0);
+      doc.setTextColor(0, 0, 0);
 
-      let total=cant*precio;
-      doc.text(`${cant}`, x, y); 
-      if(d==="ABONO"){
-	x+=130;
-doc.text(`${d}`, x, y); x+=190;
-  } else {
-	x+=80;
-doc.text(`${d}`, x, y); x+=250;
-  }
-      if(precio===""){
-	precio=850;
-  } 
-      doc.text(`$${precio}.00`, x, y); y+=250;
+      let total = cant * precio;
+      doc.text(`${cant}`, x, y);
+      if (d === "ABONO") {
+        x += 130;
+        doc.text(`${d}`, x, y); x += 190;
+      } else {
+        x += 80;
+        doc.text(`${d}`, x, y); x += 250;
+      }
+      if (precio === "") {
+        precio = 850;
+      }
+      doc.text(`$${precio}.00`, x, y); y += 250;
 
-      x=430;
+      x = 430;
       doc.setFontSize(16);
-doc.setFont(undefined, "bold"); 
-      doc.text(`Total:`, x, y); x+=60;
-doc.setFont(undefined, "normal"); 
+      doc.setFont(undefined, "bold");
+      doc.text(`Total:`, x, y); x += 60;
+      doc.setFont(undefined, "normal");
       doc.text(`$${total}.00`, x, y);
 
-      x=60;
-      y+=70;
-      doc.setFont(undefined, "bold"); 
-     doc.setFontSize(12);
-      doc.text("COMITE DE GRADUACIÓN GENERACIÓN 2021-2026, FACULTAD DE QUIMICA, UADY", x, y); 
-      y+=40;
-      doc.text("Ticket generado por:", x, y);  x+=150;
-      doc.setFont(undefined, "normal"); 
-      doc.text(`${emis}`, x, y);  x+=80;
-      y+=40;
+      x = 60;
+      y += 70;
+      doc.setFont(undefined, "bold");
+      doc.setFontSize(12);
+      doc.text("COMITE DE GRADUACIÓN GENERACIÓN 2021-2026, FACULTAD DE QUIMICA, UADY", x, y);
+      y += 40;
+      doc.text("Ticket generado por:", x, y); x += 150;
+      doc.setFont(undefined, "normal");
+      doc.text(`${emis}`, x, y); x += 80;
+      y += 30;
+      doc.setFontSize(10);
+      doc.text(`ID: ${id}`, 60, y);
+      y += 40;
 
       return doc;
     }
 
-document.getElementById("d").addEventListener("change", function(){
-  if (this.value === "ABONO") {
-    document.getElementById("pr").style.display = "block";
-  } else {
-    document.getElementById("pr").style.display = "none";
-  }
-});
+    document.getElementById("d").addEventListener("change", function () {
+      if (this.value === "ABONO") {
+        document.getElementById("pr").style.display = "block";
+      } else {
+        document.getElementById("pr").style.display = "none";
+      }
+    });
 
-document.getElementById("Usuario").addEventListener("submit", async function(e){
-  e.preventDefault();
-  const user = document.getElementById("user").value.trim();
-  const pass = document.getElementById("pass").value.trim();
-  if((user==="1" && pass==="PESA1808") || (user==="2" && pass==="Renato2025") || (user==="3" && pass==="Libro#123")|| (user==="4" && pass==="jose12")){
-document.getElementById("miFormulario").style.display = "block";
-		if(user==="1"){
-      document.getElementById("emis").value = "América Natalia Pérez Saldívar";
-} else if(user==="2"){
-      document.getElementById("emis").value = "Jessica Aimee Chan García";
-} else if(user==="3"){
-      document.getElementById("emis").value = "Alessandra Monserrat Cámara Pérez";
-}
-  else if(user==="4"){
-      document.getElementById("emis").value = "José David Gómez Pootz";
-}
-    document.getElementById("Usuario").style.display = "none";
-  } else {
-    alert("Contraseña incorrecta");
-  }
-});
-
-
-    document.getElementById("miFormulario").addEventListener("submit", async function(e){
+    document.getElementById("Usuario").addEventListener("submit", async function (e) {
       e.preventDefault();
+
+      const user = document.getElementById("user").value.trim();
+      const pass = document.getElementById("pass").value.trim();
+
+      try {
+        // 1. Buscar usuario en Firestore
+        const ref = doc(db, "Usuarios", user);
+        const snap = await getDoc(ref);
+
+        if (!snap.exists()) {
+          alert("Usuario no existe");
+          return;
+        }
+
+        const data = snap.data();
+        const email = data.correo; // 👈 ahora usas email
+
+        // 2. Login con Firebase Auth
+        await signInWithEmailAndPassword(auth, email, pass);
+
+        // 3. Acceso correcto
+        document.getElementById("miFormulario").style.display = "block";
+        document.getElementById("Usuario").style.display = "none";
+
+        document.getElementById("emis").value = data.nombre;
+
+      } catch (error) {
+        console.error("ERROR COMPLETO:", error);
+
+        alert("Credenciales incorrectas");
+      }
+    });
+
+
+    document.getElementById("miFormulario").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const id = crypto.randomUUID();
       const user = document.getElementById("user").value.trim();
       const nombre = document.getElementById('nombre').value;
       const tel = document.getElementById('tel').value;
-      const cant  = document.getElementById('cant').value;
+      const cant = document.getElementById('cant').value;
 
       const emis = document.getElementById('emis').value;
 
       const d = document.getElementById('d').value;
       const precio = document.getElementById('precio').value;
 
-      const doc = await crearPDF(nombre, tel, cant, emis, d, precio);
+      const doc = await crearPDF(nombre, tel, cant, emis, d, precio, id);
+
+      await window.setDoc(window.docRef(window.db, "pdfs", id), {
+        id: id,
+        nombre: nombre,
+        telefono: tel,
+        cantidad: Number(cant),
+        descripcion: d,
+        precio: Number(precio || 850),
+        total: Number(cant) * Number(precio || 850),
+        emisor: emis,
+        fecha: new Date().toISOString()
+      });
       const blob = doc.output('blob');
       const url = URL.createObjectURL(blob);
       window.open(url, '_blank');
     });
   </script>
 </body>
-</html>
 
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Verificar Documento</title>
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      padding: 40px;
+    }
+    input {
+      padding: 10px;
+      font-size: 16px;
+      width: 250px;
+    }
+    button {
+      padding: 10px 15px;
+      font-size: 16px;
+      margin-left: 10px;
+    }
+    #resultado {
+      margin-top: 20px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Verificar ID de recibo</h2>
+
+<input id="idInput" placeholder="Ingresa el ID">
+<button onclick="verificar()">Verificar</button>
+
+<div id="resultado"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+
+// 🔥 PON TU CONFIG AQUÍ
+const firebaseConfig = {
+      apiKey: "AIzaSyBJpjFZvRElDJWTfqb1qzrdgRF68YcKfvI",
+      authDomain: "back-ticket-graduacion.firebaseapp.com",
+      projectId: "back-ticket-graduacion",
+    };
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// hacer función global
+window.verificar = async function () {
+  const id = document.getElementById("idInput").value.trim();
+  const resultado = document.getElementById("resultado");
+
+  if (!id) {
+    resultado.innerHTML = "⚠️ Ingresa un ID";
+    return;
+  }
+
+  try {
+    const ref = doc(db, "pdfs", id);
+    const snap = await getDoc(ref);
+
+    if (snap.exists()) {
+      const data = snap.data();
+
+      resultado.innerHTML = `
+        ✅ Documento válido <br><br>
+        👤 ${data.nombre} <br>
+        💰 Total: $${data.total} <br>
+        📅 ${new Date(data.fecha).toLocaleDateString()}
+      `;
+    } else {
+      resultado.innerHTML = "❌ ID no válido";
+    }
+
+  } catch (error) {
+    console.error(error);
+    resultado.innerHTML = "⚠️ Error al verificar";
+  }
+};
+</script>
+
+</body>
+</html>
